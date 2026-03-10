@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>X-VOID System Diagram</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    /* ── Reset & Base ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #030303;
+      --surface:   #0d0d0d;
+      --surface2:  #141414;
+      --border:    rgba(255,255,255,.08);
+      --border-mid:rgba(255,255,255,.18);
+      --text:      #f0f0f0;
+      --muted:     #555;
+      --dim:       #333;
+      --green:     #4ade80;
+      --yellow:    #facc15;
+      --blue:      #60a5fa;
+      --red:       #f87171;
+      --purple:    #c084fc;
+      --orange:    #fb923c;
+      --cyan:      #22d3ee;
+      --white:     #ffffff;
+      --font:      'Courier New', Courier, monospace;
+      --radius-sm: 6px;
+      --radius:    10px;
+      --radius-lg: 14px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      font-family: var(--font);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Scrollbar ───────────────────────────────── */
+    ::-webkit-scrollbar              { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track        { background: var(--surface); }
+    ::-webkit-scrollbar-thumb        { background: #333; border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover  { background: #555; }
+
+    /* ── App Shell ───────────────────────────────── */
+    .app {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    /* ── Header ──────────────────────────────────── */
+    .header {
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: var(--white);
+      font-family: var(--font);
+    }
+    .header-sub {
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* ── Tab Bar ─────────────────────────────────── */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--muted);
+      font-size: 10px;
+      font-family: var(--font);
+      letter-spacing: 1px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background .2s, color .2s, border-color .2s, transform .15s;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      border-color: var(--border-mid);
+      background: rgba(255,255,255,.04);
+      transform: translateY(-1px);
+    }
+    .tab-btn.active {
+      background: rgba(255,255,255,.07);
+      border-color: var(--border-mid);
+      color: var(--white);
+      font-weight: 700;
+    }
+
+    /* ── Tab Content Animation ───────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .tab-content {
+      animation: fadeUp .25s ease both;
+    }
+
+    /* ── Section ─────────────────────────────────── */
+    .section {
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-weight: 800;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-family: var(--font);
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+    }
+
+    /* ── Box ─────────────────────────────────────── */
+    .box {
+      background: var(--surface2);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      transition: box-shadow .2s;
+    }
+    .box-title {
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-family: var(--font);
+      margin-bottom: 8px;
+    }
+    .box-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 5px;
+    }
+    .box-item-arrow { font-size: 10px; margin-top: 1px; flex-shrink: 0; }
+    .box-item-text  { font-size: 10px; font-family: var(--font); line-height: 1.55; color: var(--text); }
+
+    /* ── Badge ───────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      border-radius: var(--radius-sm);
+      padding: 2px 8px;
+      font-size: 9px;
+      font-family: var(--font);
+      letter-spacing: 1px;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* ── Step ────────────────────────────────────── */
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 9px;
+    }
+    .step-num {
+      width: 24px; height: 24px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font);
+      font-size: 10px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .step-body { padding-top: 2px; }
+    .step-text { font-size: 11px; color: var(--text); font-family: var(--font); }
+    .step-sub  { font-size: 9px; color: var(--muted); font-family: var(--font); margin-top: 2px; }
+
+    /* ── Flow Node ───────────────────────────────── */
+    .flow-node {
+      background: var(--surface2);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      text-align: center;
+      min-width: 90px;
+      flex: 1;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .flow-node:hover { transform: translateY(-2px); }
+    .flow-node-icon  { font-size: 18px; margin-bottom: 4px; }
+    .flow-node-label { font-weight: 800; font-size: 10px; font-family: var(--font); letter-spacing: 1px; }
+    .flow-node-sub   { font-size: 8px; font-family: var(--font); margin-top: 3px; color: var(--muted); }
+
+    /* ── Arrow ───────────────────────────────────── */
+    .arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+    .arrow.v { flex-direction: column; margin: 4px auto; min-height: 32px; min-width: 10px; }
+    .arrow.h { flex-direction: row;    margin: auto 4px; min-width: 32px;  min-height: 10px; }
+    .arrow-label { font-size: 8px; color: var(--muted); font-family: var(--font); letter-spacing: 1px; text-align: center; white-space: nowrap; }
+    .arrow-icon  { font-size: 16px; line-height: 1; color: var(--muted); }
+
+    /* ── Grid Helpers ────────────────────────────── */
+    .row   { display: flex; flex-wrap: wrap; gap: 8px; }
+    .col   { flex: 1; min-width: 140px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+    /* ── Dashed Panel ────────────────────────────── */
+    .panel-dashed {
+      border-radius: var(--radius);
+      padding: 10px;
+      margin: 8px 0;
+    }
+    .panel-label {
+      font-size: 9px;
+      font-family: var(--font);
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+      font-weight: 800;
+    }
+
+    /* ── Mini Card ───────────────────────────────── */
+    .mini-card {
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 9px;
+      font-family: var(--font);
+      transition: transform .15s;
+    }
+    .mini-card:hover { transform: translateY(-1px); }
+    .mini-card-id    { font-weight: 800; }
+    .mini-card-sub   { color: var(--muted); margin-top: 2px; }
+
+    /* ── Footer ──────────────────────────────────── */
+    .footer {
+      margin-top: 28px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      font-size: 8px;
+      color: var(--dim);
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    /* ── Responsive ──────────────────────────────── */
+    @media (max-width: 640px) {
+      .app { padding: 14px 12px 32px; }
+      .grid2 { grid-template-columns: 1fr; }
+      .grid4 { grid-template-columns: 1fr 1fr; }
+      .header-title { font-size: 18px; }
+      .tab-btn { padding: 6px 10px; font-size: 9px; }
+      .flow-node { min-width: 70px; }
+      .section { padding: 12px; }
+    }
+
+    @media (max-width: 400px) {
+      .grid4 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    /* ── Color Palette ──────────────────────────── */
+    const C = {
+      green:  '#4ade80', yellow: '#facc15', blue:  '#60a5fa',
+      red:    '#f87171', purple: '#c084fc', orange:'#fb923c',
+      cyan:   '#22d3ee', white:  '#ffffff', muted: '#555',
+    };
+
+    /* ── Tiny Helpers ───────────────────────────── */
+    const hex  = (col, a) => col + a;           // col + alpha suffix
+    const bdr  = (col, a) => `1px solid ${col}${a}`;
+
+    /* ── Reusable Components ────────────────────── */
+
+    function Badge({ color, children }) {
+      return (
+        <span className="badge" style={{
+          background: hex(color,'22'), border: bdr(color,'55'), color,
+        }}>{children}</span>
+      );
+    }
+
+    function Box({ title, items, color = C.blue, icon = '', style = {} }) {
+      return (
+        <div className="box" style={{ border: bdr(color,'44'), boxShadow: `0 0 20px ${color}11`, ...style }}>
+          <div className="box-title" style={{ color }}>{icon} {title}</div>
+          {items.map((item, i) => (
+            <div key={i} className="box-item">
+              <span className="box-item-arrow" style={{ color }}>▸</span>
+              <span className="box-item-text">{item}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function Arrow({ label = '', color = C.muted, dir = 'right' }) {
+      const isV = dir === 'down' || dir === 'up';
+      const rotate = { up:'rotate(270deg)', down:'rotate(90deg)', left:'rotate(180deg)', right:'none' }[dir];
+      return (
+        <div className={`arrow ${isV ? 'v' : 'h'}`}>
+          {label && <span className="arrow-label" style={{ color }}>{label}</span>}
+          <div className="arrow-icon" style={{ color, transform: rotate }}>→</div>
+        </div>
+      );
+    }
+
+    function Section({ title, color, children }) {
+      return (
+        <div className="section" style={{ border: bdr(color,'33'), background: hex(color,'06') }}>
+          <div className="section-title" style={{ color, borderBottom: bdr(color,'22') }}>
+            ◆ {title}
+          </div>
+          {children}
+        </div>
+      );
+    }
+
+    function Step({ num, text, sub, color = C.blue }) {
+      return (
+        <div className="step">
+          <div className="step-num" style={{ background: hex(color,'22'), border: bdr(color,'55'), color }}>
+            {num}
+          </div>
+          <div className="step-body">
+            <div className="step-text">{text}</div>
+            {sub && <div className="step-sub">{sub}</div>}
+          </div>
+        </div>
+      );
+    }
+
+    function FlowNode({ label, sub, color, icon, style = {} }) {
+      return (
+        <div className="flow-node" style={{ border: bdr(color,'55'), boxShadow: `0 0 12px ${color}18`, ...style }}>
+          {icon && <div className="flow-node-icon">{icon}</div>}
+          <div className="flow-node-label" style={{ color }}>{label}</div>
+          {sub && <div className="flow-node-sub">{sub}</div>}
+        </div>
+      );
+    }
+
+    function PanelDashed({ color, label, children, style = {} }) {
+      return (
+        <div className="panel-dashed" style={{ border: `1px dashed ${color}44`, ...style }}>
+          <div className="panel-label" style={{ color }}>{label}</div>
+          {children}
+        </div>
+      );
+    }
+
+    function SplitOutcome({ left, right }) {
+      return (
+        <div className="row" style={{ margin: '8px 0' }}>
+          {left  && <div className="col" style={{ background: left.bg,  border: left.bdr,  borderRadius: 8, padding: 10 }}><div className="panel-label" style={{ color: left.color  }}>{left.title}</div>{left.children}</div>}
+          {right && <div className="col" style={{ background: right.bg, border: right.bdr, borderRadius: 8, padding: 10 }}><div className="panel-label" style={{ color: right.color }}>{right.title}</div>{right.children}</div>}
+        </div>
+      );
+    }
+
+    /* ── Tab: Arsitektur ────────────────────────── */
+    function TabArsitektur() {
+      return (
+        <div>
+          <Section title="Layer Diagram — X-VOID System" color={C.cyan}>
+            <div className="row" style={{ marginBottom: 8 }}>
+              <FlowNode label="Browser"   sub="User / Attacker" color={C.blue} icon="🌐" />
+              <FlowNode label="curl / wget" sub="Bot / Scanner" color={C.red}  icon="🤖" />
+            </div>
+            <Arrow dir="down" label="HTTP Request" />
+
+            <PanelDashed color={C.cyan} label="NODE.JS SERVER — server.js :3000" style={{ margin: '8px 0' }}>
+              <div className="row" style={{ marginBottom: 8 }}>
+                <FlowNode label="Bot Guard"    sub="Anti-curl middleware" color={C.red}   icon="🛡" />
+                <FlowNode label="Static Files" sub="HTML / JS / asset"   color={C.blue}  icon="📁" />
+                <FlowNode label="REST API"     sub="/api/..."             color={C.green} icon="⚡" />
+              </div>
+              <div className="row">
+                <FlowNode label="User CRUD"   sub="users.json"       color={C.yellow} icon="👥" />
+                <FlowNode label="WA Baileys"  sub="per-user session" color={C.green}  icon="📱" />
+                <FlowNode label="Pterodactyl" sub="panel API"        color={C.purple} icon="🦅" />
+                <FlowNode label="DDOS Engine" sub="flood.js"         color={C.orange} icon="💥" />
+              </div>
+            </PanelDashed>
+
+            <Arrow dir="down" label="baca / tulis" />
+            <div className="row">
+              <FlowNode label="users.json"   sub="data akun"         color={C.yellow} icon="📄" />
+              <FlowNode label="sessions/{id}/" sub="WA credentials"  color={C.green}  icon="🔐" />
+              <FlowNode label="curl_log.txt" sub="bot IP log"         color={C.red}    icon="📝" />
+            </div>
+          </Section>
+
+          <Section title="Frontend Pages" color={C.blue}>
+            <div className="row">
+              {[
+                { name:'index.html',  sub:'Login + Intro Video', icon:'🔐', color:C.blue   },
+                { name:'dash.html',   sub:'Dashboard utama',     icon:'📊', color:C.cyan   },
+                { name:'p.html',      sub:'Dev & Partner List',  icon:'👥', color:C.purple },
+                { name:'protect.js',  sub:'Anti-devtools',       icon:'🛡', color:C.red    },
+              ].map((p,i) => <FlowNode key={i} label={p.name} sub={p.sub} color={p.color} icon={p.icon} />)}
+            </div>
+          </Section>
+
+          <Section title="Halaman di Dalam dash.html" color={C.cyan}>
+            <div className="row">
+              {[
+                ['#home',     'Dashboard utama', C.blue  ],
+                ['#logs',     'Terminal logs',   C.green ],
+                ['#p-bug',    'WA Exploit',      C.orange],
+                ['#settings', 'Ganti password',  C.yellow],
+                ['#profile',  'Info akun',       C.cyan  ],
+                ['#ddos',     'DDOS Tool',       C.red   ],
+                ['#add-user', 'Add user',        C.purple],
+                ['#edit-user','Edit user',       C.purple],
+                ['#wa-pair',  'WA Pairing',      C.green ],
+              ].map(([id, label, color], i) => (
+                <div key={i} className="mini-card" style={{ background: hex(color,'15'), border: bdr(color,'44'), color }}>
+                  <div className="mini-card-id">{id}</div>
+                  <div className="mini-card-sub">{label}</div>
+                </div>
+              ))}
+            </div>
+          </Section>
+        </div>
+      );
+    }
+
+    /* ── Tab: Login ─────────────────────────────── */
+    function TabLogin() {
+      return (
+        <div>
+          <Section title="Alur Login — index.html" color={C.blue}>
+            <Step num="1" text="User buka index.html"           sub="Tampil login card + dot grid background"               color={C.blue}   />
+            <Step num="2" text="Input USERNAME + PASSWORD"      sub="Form input dengan styling Syne font"                   color={C.blue}   />
+            <Step num="3" text="Klik LOGIN → handleLogin()"    sub="Fetch users.json secara langsung dari browser"          color={C.blue}   />
+            <Step num="4" text="Cocokkan USERNAME & PASSWORD"   sub="Loop data users[], case-sensitive matching"             color={C.yellow} />
+
+            <SplitOutcome
+              left={{
+                bg: hex(C.green,'11'), bdr: bdr(C.green,'33'), color: C.green,
+                title: '✅ BERHASIL',
+                children: <>
+                  <Step num="5" text="Simpan ke sessionStorage"      sub='key: "currentUser" (JSON user object)'               color={C.green} />
+                  <Step num="6" text="Jalankan playIntro()"          sub="Fullscreen video overlay asset/intro.mp4"             color={C.green} />
+                  <Step num="7" text="Animasi huruf X-Void One"      sub="letterPop keyframe, stagger 80ms per char"            color={C.green} />
+                  <Step num="8" text="Progress bar video sync"       sub="loadedmetadata → track duration"                     color={C.green} />
+                  <Step num="9" text="Redirect → dash.html"          sub="Setelah video selesai atau SKIP diklik"               color={C.green} />
+                </>,
+              }}
+              right={{
+                bg: hex(C.red,'11'), bdr: bdr(C.red,'33'), color: C.red,
+                title: '❌ GAGAL',
+                children: <>
+                  <Step num="5" text="SweetAlert2 error popup" sub='"Username atau password salah!"' color={C.red} />
+                </>,
+              }}
+            />
+
+            <Step num="10" text="dash.html load currentUser"     sub="sessionStorage.getItem('currentUser') → parse JSON"   color={C.cyan} />
+            <Step num="11" text="updateUserInfo() + loadDevMenu()" sub="Tampilkan nama, role, badge, menu sesuai role"       color={C.cyan} />
+          </Section>
+
+          <Section title="Session & Role Check" color={C.yellow}>
+            <div className="row">
+              {[
+                { role:'Developer', color:C.white,  access:'Semua menu (DDOS, Add/Edit User, WA Pair, Ptero)'        },
+                { role:'Partner',   color:C.purple, access:'DDOS, WA Pair, Add/Edit User (limit 5×/hari)'            },
+                { role:'Admin',     color:C.cyan,   access:'Home, Logs, Bug, Settings, Profile'                      },
+                { role:'Member',    color:C.blue,   access:'Home, Logs, Bug, Settings, Profile'                      },
+              ].map((r,i) => (
+                <div key={i} className="col" style={{ background: hex(r.color,'0a'), border: bdr(r.color,'33'), borderRadius: 8, padding: 10 }}>
+                  <Badge color={r.color}>{r.role}</Badge>
+                  <div style={{ color:'#555', fontSize:9, fontFamily:'monospace', marginTop:6, lineHeight:1.6 }}>{r.access}</div>
+                </div>
+              ))}
+            </div>
+          </Section>
+        </div>
+      );
+    }
+
+    /* ── Tab: WA Pairing ────────────────────────── */
+    function TabWA() {
+      return (
+        <div>
+          <Section title="WA Pairing Flow — Baileys" color={C.green}>
+            <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+
+              <div className="row" style={{ alignItems:'center' }}>
+                <FlowNode label="User" sub="buka #wa-pair" color={C.blue} icon="👤" style={{ width:100, flex:'none' }} />
+                <Arrow label="initWaPairPage()" />
+                <FlowNode label="GET /api/wa/status/:id" sub="cek session aktif" color={C.cyan} />
+              </div>
+              <Arrow dir="down" />
+
+              <PanelDashed color={C.yellow} label="INPUT PHASE">
+                <Step num="1" text="User input nomor WA (format: 628xxx)"       color={C.yellow} />
+                <Step num="2" text="Klik PAIR → waStartPairing()"               color={C.yellow} />
+                <Step num="3" text="POST /api/wa/pair {userId, phone}" sub="Validasi format nomor dulu" color={C.yellow} />
+              </PanelDashed>
+
+              <PanelDashed color={C.green} label="SERVER — createWASession(userId, phone)">
+                <Step num="4" text="Cek session lama → cleanup jika ada"    sub="existing.sock.end() + clearTimeout"         color={C.green} />
+                <Step num="5" text="useMultiFileAuthState(sessions/{id}/)"  sub="Load atau buat credentials baru"            color={C.green} />
+                <Step num="6" text="fetchLatestBaileysVersion()"            sub="Ambil versi WA protocol terbaru"            color={C.green} />
+                <Step num="7" text="makeWASocket() — buat koneksi WA"      sub="Browser: Ubuntu Chrome, logger: silent"     color={C.green} />
+                <Step num="8" text="requestPairingCode(phone)"              sub="Tunggu 2 detik → format XXXX-XXXX"         color={C.green} />
+                <Step num="9" text="Polling di server max 15 detik"         sub="Cek pairingCode setiap 500ms"              color={C.green} />
+              </PanelDashed>
+
+              <div className="row" style={{ marginBottom:8 }}>
+                <div className="col" style={{ background: hex(C.green,'11'), border: bdr(C.green,'33'), borderRadius:8, padding:10 }}>
+                  <div className="panel-label" style={{ color:C.green }}>✅ CODE DIDAPAT</div>
+                  <Step num="10" text="Frontend tampil kode besar"        sub="waPairingCode: XXXX-XXXX"        color={C.green} />
+                  <Step num="11" text="Countdown 60 detik expire"         sub="waStartExpireCountdown(60)"      color={C.green} />
+                  <Step num="12" text="Poll status tiap 3 detik"          sub="setInterval → waCheckStatus()"  color={C.green} />
+                </div>
+              </div>
+
+              <PanelDashed color={C.cyan} label="USER MASUK KODE DI WA">
+                <Step num="13" text="WA Settings → Linked Devices → Link with phone number"                                    color={C.cyan} />
+                <Step num="14" text="connection.update event → connection: 'open'"  sub="sessionObj.status = 'connected'"      color={C.cyan} />
+                <Step num="15" text="creds.update → saveCreds()"                    sub="Simpan session ke sessions/{userId}/" color={C.cyan} />
+                <Step num="16" text="Poll frontend detect 'connected'"              sub="Tampil green card + nomor HP"         color={C.cyan} />
+              </PanelDashed>
+
+              <PanelDashed color={C.orange} label="AUTO RECONNECT">
+                <Step num="17" text="connection: 'close' → cek DisconnectReason"  sub="loggedOut? hapus session. Lainnya? reconnect" color={C.orange} />
+                <Step num="18" text="setTimeout 5000ms → createWASession() lagi"   sub="Loop sampai berhasil atau logout"             color={C.orange} />
+                <Step num="19" text="Server start → restoreExistingSessions()"     sub="Scan folder sessions/ → reconnect semua"      color={C.orange} />
+              </PanelDashed>
+            </div>
+          </Section>
+
+          <Section title="WA Session State Machine" color={C.cyan}>
+            <div className="row" style={{ alignItems:'center', justifyContent:'center', flexWrap:'wrap' }}>
+              {[
+                ['disconnected', C.muted],
+                '→',
+                ['connecting',  C.blue  ],
+                '→',
+                ['waiting',     C.yellow],
+                '→',
+                ['connected',   C.green ],
+              ].map((item,i) =>
+                Array.isArray(item)
+                  ? <FlowNode key={i} label={item[0]} color={item[1]} style={{ minWidth:90 }} />
+                  : <span key={i} style={{ color:C.muted, fontSize:14 }}>{item}</span>
+              )}
+            </div>
+            <div className="row" style={{ justifyContent:'center', marginTop:10 }}>
+              <div style={{ color:C.muted, fontSize:9, fontFamily:'monospace' }}>
+                connected → <span style={{ color:C.orange }}>reconnecting</span> → connecting (jika putus)
+              </div>
+              <div style={{ color:C.muted, fontSize:9, fontFamily:'monospace' }}>
+                connected → <span style={{ color:C.red }}>disconnected</span> (jika logout)
+              </div>
+            </div>
+          </Section>
+        </div>
+      );
+    }
+
+    /* ── Tab: DDOS / Ptero ──────────────────────── */
+    function TabDDOS() {
+      return (
+        <div>
+          <Section title="DDOS Tool Flow" color={C.red}>
+            <Step num="1" text="Buka menu #ddos di dashboard"                                        sub="showDdos() → hide halaman lain"                     color={C.red}    />
+            <Step num="2" text="Input: URL target + durasi + satuan waktu + cookie (opsional)"       sub="Validasi URL dengan new URL(), durasi minimal 1"     color={C.red}    />
+            <Step num="3" text="Toggle Log checkbox"                                                 sub="Kalau aktif: setiap request dicatat ke #logs"        color={C.yellow} />
+            <Step num="4" text="Klik LAUNCH ATTACK → startDdos()"                                   color={C.red}    />
+
+            <PanelDashed color={C.red} label="SERVER-SIDE startDdos()">
+              <Step num="5" text="loadProxiesAndUA()"                           sub="Baca prx.txt (daftar proxy) + uan.txt (user agents)"              color={C.orange} />
+              <Step num="6" text="Hitung ddosTotalSecs = durasi × satuan"       sub="DETIK×1, MENIT×60, JAM×3600"                                     color={C.orange} />
+              <Step num="7" text="executeFlood(url, duration, cookie, showLog)" sub="spawn('node', ['flood.js', url, duration, cookie, ua, proxy])"   color={C.orange} />
+              <Step num="8" text="Round-robin proxy & UA rotation"              sub="getNextProxy() + getNextUserAgent() per request"                  color={C.orange} />
+              <Step num="9" text="setInterval setiap 1 detik → update UI"      sub="Progress bar + countdown timer"                                   color={C.orange} />
+            </PanelDashed>
+
+            <SplitOutcome
+              left={{
+                bg: hex(C.red,'11'), bdr: bdr(C.red,'33'), color: C.red,
+                title: 'STOP MANUAL',
+                children: <>
+                  <Step num="10" text="Klik STOP → Swal konfirmasi"                                    color={C.red} />
+                  <Step num="11" text="ddosProcess.kill('SIGINT')"   sub="Hentikan proses flood.js"    color={C.red} />
+                  <Step num="12" text="finishDdos(..., manual=true)" sub="Reset UI tanpa summary popup" color={C.red} />
+                </>,
+              }}
+              right={{
+                bg: hex(C.green,'11'), bdr: bdr(C.green,'33'), color: C.green,
+                title: 'SELESAI OTOMATIS',
+                children: <>
+                  <Step num="10" text="countdown ≤ 0 → finishDdos()"                                     color={C.green} />
+                  <Step num="11" text="Swal summary: total req, proxies, UAs"                             color={C.green} />
+                  <Step num="12" text="Reset UI ke idle state" sub="Progress bar 100% → fade 4 detik"    color={C.green} />
+                </>,
+              }}
+            />
+          </Section>
+
+          <Section title="Pterodactyl WA Bug Flow" color={C.purple}>
+            <Step num="1" text="User buka #p-bug → input nomor WA target"  sub="Input type=number, format 628xxx"                          color={C.purple} />
+            <Step num="2" text="Klik SEND BUG → openBugMenu()"             sub="Modal pilihan bug muncul"                                   color={C.purple} />
+            <Step num="3" text="Pilih tipe bug"                             sub="FORCLOSE (.forclose) / CLOSE UI (.closeui) / DELAY (.delay)" color={C.purple} />
+            <Step num="4" text="setBug(type) → tampil fingerprint sensor"                                                                    color={C.purple} />
+            <Step num="5" text="Tap sensor → confirmAct()"                 sub="Animasi scanning icon"                                      color={C.purple} />
+            <Step num="6" text="POST /api/ptero {target, type}"                                                                              color={C.purple} />
+
+            <PanelDashed color={C.purple} label="SERVER — sendToPanel(command)">
+              <Step num="7" text="Build command: .delay / .forclose / .closeui + target"                                                      color={C.purple} />
+              <Step num="8" text="POST ke Pterodactyl panel"  sub="panelUrl/api/client/servers/{serverId}/command"                           color={C.purple} />
+              <Step num="9" text="Auth: Bearer {apiKey} header"                                                                               color={C.purple} />
+            </PanelDashed>
+
+            <Step num="10" text="Response → Swal success/error" sub="addLog('PTERO', ...) ke terminal logs" color={C.purple} />
+          </Section>
+        </div>
+      );
+    }
+
+    /* ── Tab: User Management ───────────────────── */
+    function TabUser() {
+      const crudItems = [
+        {
+          color: C.green,
+          title: '➕ ADD USER',
+          steps: [
+            { text:'Buka #add-user (Dev/Partner only)' },
+            { text:'Input: username, password, role, saldo' },
+            { text:'Role auto-isi saldo default', sub:'Member: 50rb, Admin: 100rb, Dev/Partner: ∞' },
+            { text:'generateId(role)', sub:'DEV1234 / ADM5678 / PTR9012 / MBR3456' },
+            { text:'POST /api/users/add', sub:'Cek duplikat username dulu' },
+            { text:'Tulis ke users.json' },
+          ],
+        },
+        {
+          color: C.yellow,
+          title: '✏️ EDIT USER',
+          steps: [
+            { text:'Buka #edit-user → loadUserList()', sub:'Fetch users.json → renderUserList()' },
+            { text:'Klik user → selectUserToEdit()', sub:'Edit panel slide muncul di bawah' },
+            { text:'Edit role / saldo / password', sub:'Role Dev/Partner → saldo otomatis ∞' },
+            { text:'PUT /api/users/edit', sub:'Update field yang diisi saja' },
+            { text:'Refresh list otomatis' },
+          ],
+        },
+        {
+          color: C.orange,
+          title: '⛔ TOGGLE ACTIVE',
+          steps: [
+            { text:'Klik Nonaktifkan / Aktifkan', sub:'Swal konfirmasi muncul' },
+            { text:'PUT /api/users/toggle {ID, ACTIVE}' },
+            { text:'users.json[idx].ACTIVE = true/false' },
+            { text:'Item list tampil dengan opacity 0.4', sub:'jika ACTIVE: false' },
+          ],
+        },
+        {
+          color: C.red,
+          title: '🗑 DELETE USER',
+          steps: [
+            { text:'Klik HAPUS → Swal konfirmasi merah' },
+            { text:'DELETE /api/users/delete {ID}' },
+            { text:'Filter array: users tanpa ID ini', sub:'Kalau tidak ketemu → 404' },
+            { text:'writeUsers() → simpan ke file' },
+          ],
+        },
+      ];
+
+      return (
+        <div>
+          <Section title="User Management — CRUD" color={C.yellow}>
+            <div className="grid2">
+              {crudItems.map((item, i) => (
+                <div key={i} style={{ background: hex(item.color,'0a'), border: bdr(item.color,'33'), borderRadius:10, padding:12 }}>
+                  <div style={{ color:item.color, fontFamily:'monospace', fontSize:10, fontWeight:800, marginBottom:8, letterSpacing:1 }}>
+                    {item.title}
+                  </div>
+                  {item.steps.map((s, j) => (
+                    <Step key={j} num={j+1} text={s.text} sub={s.sub} color={item.color} />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          <Section title="Partner Limit System" color={C.purple}>
+            <div className="row">
+              <Box title="Cara Kerja Limit" color={C.purple} icon="🔒" style={{ flex:1, minWidth:160 }} items={[
+                'Key: x_void_{type}_{tanggal}',
+                'Disimpan di localStorage browser',
+                'Reset otomatis setiap hari baru',
+                'Developer: unlimited (bypass)',
+                'Partner: max 5× per hari',
+                'Tampil counter 0/5 di notice bar',
+              ]} />
+              <Box title="Cakupan Limit" color={C.cyan} icon="📊" style={{ flex:1, minWidth:160 }} items={[
+                "Add user → type: 'add'",
+                "Edit user → type: 'edit'",
+                "Toggle active → type: 'edit'",
+                "Delete user → type: 'edit'",
+                'Kalau limit habis → Swal warning',
+              ]} />
+            </div>
+          </Section>
+        </div>
+      );
+    }
+
+    /* ── Tab: Security ──────────────────────────── */
+    function TabSecurity() {
+      return (
+        <div>
+          <Section title="Anti-Bot / Anti-Curl (server.js)" color={C.red}>
+            <Step num="1" text="Semua request masuk → middleware pertama"  sub="Sebelum static files dan API routes"  color={C.red} />
+            <Step num="2" text="Ambil User-Agent header"                   sub='req.headers["user-agent"]'            color={C.red} />
+            <Step num="3" text="Cek apakah UA match daftar bot"            sub="curl, wget, python-requests, httpie, postman, dll (14 pattern)" color={C.red} />
+
+            <SplitOutcome
+              left={{
+                bg: hex(C.red,'11'), bdr: bdr(C.red,'33'), color: C.red,
+                title: '🤖 BOT TERDETEKSI',
+                children: <>
+                  <Step num="4" text="getRealIP(req)"       sub="x-forwarded-for → x-real-ip → socket.remoteAddress" color={C.red} />
+                  <Step num="5" text="logBotAttempt() → curl_log.txt" sub="[timestamp] IP: ... | UA: ... | URL: ..."  color={C.red} />
+                  <Step num="6" text='res.status(403) text/plain'      sub='"ngapain lu kids + IP lu kecatet: ..."'   color={C.red} />
+                  <Step num="7" text="Request berhenti di sini"         sub="next() TIDAK dipanggil"                  color={C.red} />
+                </>,
+              }}
+              right={{
+                bg: hex(C.green,'11'), bdr: bdr(C.green,'33'), color: C.green,
+                title: '✅ BUKAN BOT',
+                children: <>
+                  <Step num="4" text="next() dipanggil" sub="Lanjut ke static files atau API" color={C.green} />
+                </>,
+              }}
+            />
+          </Section>
+
+          <Section title="Anti-DevTools (protect.js)" color={C.orange}>
+            <div className="grid2">
+              <Box title="Keyboard Block" color={C.orange} icon="⌨️" items={[
+                'F12 → preventDefault',
+                'Ctrl+Shift+I/J/C → blok DevTools',
+                'Ctrl+U → blok View Source',
+                'Ctrl+S → blok Save Page',
+                'Ctrl+P → blok Print',
+              ]} />
+              <Box title="Mouse Block" color={C.red} icon="🖱️" items={[
+                'contextmenu → blok klik kanan',
+                'selectstart → blok seleksi teks',
+                '(input/textarea dikecualikan)',
+                'dragstart → blok drag',
+              ]} />
+              <Box title="DevTools Detection" color={C.yellow} icon="🔍" items={[
+                'Size method: outerWidth - innerWidth > 160',
+                'Timing method: performance.now() sekitar debugger',
+                'Cek setiap 800ms (setInterval)',
+                'Trigger juga saat resize event',
+              ]} />
+              <Box title="Jika DevTools Terbuka" color={C.red} icon="💣" items={[
+                "document.documentElement.innerHTML = ''",
+                'cloneNode → replaceChild',
+                "window.location.replace('about:blank')",
+                'Console semua method → noop ()',
+              ]} />
+            </div>
+          </Section>
+
+          <Section title="Audio Autoplay" color={C.cyan}>
+            <Step num="1" text='<audio id="bgMusic" src="asset/p.mp3" loop>' sub="Di dash.html dan p.html"                  color={C.cyan}   />
+            <Step num="2" text="volume = 0.4 → audio.play()"                  sub="Coba autoplay langsung"                   color={C.cyan}   />
+            <Step num="3" text="Kalau browser blokir (Chrome policy)"          sub="Pasang event listener: click/touchstart/keydown" color={C.yellow} />
+            <Step num="4" text="Saat user interaksi pertama → play()"          sub="removeEventListener setelah berhasil"    color={C.green}  />
+          </Section>
+        </div>
+      );
+    }
+
+    /* ── Root App ───────────────────────────────── */
+    const TABS = ['Arsitektur','Alur Login','WA Pairing','DDOS / Ptero','User Management','Security'];
+    const CONTENTS = [TabArsitektur, TabLogin, TabWA, TabDDOS, TabUser, TabSecurity];
+
+    function App() {
+      const [activeTab, setActiveTab] = useState(0);
+      const Content = CONTENTS[activeTab];
+
+      return (
+        <div className="app">
+          <header className="header">
+            <div className="header-title">X-VOID</div>
+            <div className="header-sub">System Architecture Diagram</div>
+          </header>
+
+          <nav className="tab-bar">
+            {TABS.map((t, i) => (
+              <button
+                key={i}
+                className={`tab-btn${i === activeTab ? ' active' : ''}`}
+                onClick={() => setActiveTab(i)}
+              >{t}</button>
+            ))}
+          </nav>
+
+          {/* key forces remount → replays fadeUp animation on tab switch */}
+          <main className="tab-content" key={activeTab}>
+            <Content />
+          </main>
+
+          <footer className="footer">
+            X-VOID SYSTEM DIAGRAM — {new Date().getFullYear()}
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
